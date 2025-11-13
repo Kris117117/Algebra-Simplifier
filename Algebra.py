@@ -1,21 +1,12 @@
 import sys
-string="3x*2+x^3+5x+x" #Example equation for now, will eventually be a input statement from user
-var='0'
-for i in range(len(string)):
-    if string[i].isalpha():
-        var=string[i]
-        break
-if not var.isalpha():
-    print(eval(string))
-    sys.exit()
-print(var)
+string="3/2x-x^3+5x+x+2+325+3y^(x-1)-2y^(x-1)+2y(x(x+1))^2"
 class term:
     def __init__(self,string,var):
         varIndex=string.find(var)
         if varIndex==-1:
             self.coef=float(string)
-            self.degree=0
-            self.var=None
+            self.degree='^0'
+            self.var='x'
         else:
             self.var=var
             coefPart=string[:varIndex]
@@ -23,26 +14,34 @@ class term:
                 if coefPart == '-':
                     self.coef=-1
                 else:
-                    self.coef=float(coefPart)
+                    self.coef=eval(coefPart)
             else:
                 self.coef=1
+            #degree part
             degreePart=string[varIndex+1:]
             if len(degreePart)>0:
-                self.degree=float(degreePart[1:])
+                self.degree=degreePart
             else:
-                self.degree=1
-            if string.find('^') == -1:
-                self.coef*=self.degree
-                self.degree=1
+                self.degree='^1'
 
-signs=('+','-','*','/')
 lst=[]
 num=0
+stop=False
 for i in range(len(string)):
-    if string[i] in signs:
-        lst.append(string[num:i])
-        lst.append(string[i])
-        num=i+1
+    if string[i]=='(':
+        stop=True
+    elif string[i]==')':
+        stop=False
+    if not stop:
+        if string[i] == '+':
+            lst.append(string[num:i])
+            lst.append('+')
+            num=i+1
+        elif string[i]=='-':
+            lst.append(string[num:i])
+            lst.append('+')
+            num=i
+
 lst.append(string[num:])
 print(lst)
 def findTypeVar(string):
@@ -54,8 +53,28 @@ def findTypeVar(string):
     return var
 varlst=[]
 for i in range(len(lst)):
-    if lst[i] not in signs:
+    if lst[i] != '+':
         varlst.append(term(lst[i],findTypeVar(lst[i])))
-for i in range(len(varlst)):
-    classVar=varlst[i]
-    print(classVar.coef,classVar.degree)
+print('\n')
+
+def combineLikeTerms(lst):
+    combined = {}
+    for t in lst:
+        key = (t.var, t.degree)
+        if key in combined:
+            combined[key] += t.coef
+        else:
+            combined[key] = t.coef
+
+    newlst = []
+    for (var, degree), coef in combined.items():
+        term_str = f"{coef}{var}{degree}"
+        newlst.append(term(term_str, var))
+    return newlst
+
+
+newlst = combineLikeTerms(varlst)
+
+for num in newlst:
+    print(str(num.coef)+str(num.var)+str(num.degree))
+
